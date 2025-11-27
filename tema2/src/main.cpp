@@ -22,9 +22,8 @@ int main()
     while (ruleaza)
     {
         std::cout << "\n=== Meniu ===\n";
-        std::cout << "1. Adauga produs direct in magazin\n";
-        std::cout << "2. Proceseaza o livrare (depozit temporar + move)\n";
-        std::cout << "3. Afiseaza inventarul principal\n";
+        std::cout << "1. Proceseaza o livrare (depozit temporar)\n";
+        std::cout << "2. Afiseaza inventarul principal\n";
         std::cout << "0. Iesire\n";
         std::cout << "Optiune: ";
 
@@ -36,17 +35,17 @@ int main()
         {
         case 1:
         {
-            std::cout << "\n--- Adaugare produs in magazin ---\n";
-            citesteProdusSiAdauga(magazin);
-            break;
-        }
-        case 2:
-        {
             std::cout << "\n--- Livrare noua (depozit temporar) ---\n";
             int nr;
             std::cout << "Cate produse are livrarea? ";
             std::cin >> nr;
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+            if (nr <= 0)
+            {
+                std::cout << "Numar invalid de produse.\n";
+                break;
+            }
 
             Inventory depozitTemporar("Depozit Temporar", nr);
 
@@ -56,17 +55,69 @@ int main()
                 citesteProdusSiAdauga(depozitTemporar);
             }
 
-            Inventory livrare = std::move(depozitTemporar);
+            bool finalizeazaLivrarea = false;
+            bool anuleazaLivrarea = false;
 
-            for (std::size_t i = 0; i < livrare.getSize(); ++i)
+            while (!finalizeazaLivrarea && !anuleazaLivrarea)
             {
-                magazin.adaugaProdus(livrare.getProdus(i));
+                std::cout << "\n--- Verificare livrare in depozitul temporar ---\n";
+                std::cout << depozitTemporar;
+
+                std::cout << "\nOptiuni livrare:\n";
+                std::cout << "1. Sterge un produs gresit din depozitul temporar\n";
+                std::cout << "2. Integreaza livrarea in magazinul principal\n";
+                std::cout << "0. Renunta la aceasta livrare\n";
+                std::cout << "Optiune: ";
+
+                int optLivrare;
+                std::cin >> optLivrare;
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+                switch (optLivrare)
+                {
+                case 1:
+                {
+                    if (depozitTemporar.getSize() == 0)
+                    {
+                        std::cout << "Nu mai sunt produse in depozitul temporar.\n";
+                        break;
+                    }
+
+                    std::cout << "Introdu indexul produsului de sters (0.."
+                              << (depozitTemporar.getSize() - 1) << "): ";
+                    std::size_t idx;
+                    std::cin >> idx;
+                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+                    depozitTemporar.stergeProdus(idx);
+                    break;
+                }
+                case 2:
+                {
+                    Inventory livrare = std::move(depozitTemporar);
+
+                    for (std::size_t i = 0; i < livrare.getSize(); ++i)
+                    {
+                        magazin.adaugaProdus(livrare.getProdus(i));
+                    }
+
+                    std::cout << "Livrarea a fost integrata in magazinul principal.\n";
+                    finalizeazaLivrarea = true;
+                    break;
+                }
+                case 0:
+                    std::cout << "Livrarea a fost anulata. Produsele NU au fost adaugate in magazin.\n";
+                    anuleazaLivrarea = true;
+                    break;
+                default:
+                    std::cout << "Optiune invalida.\n";
+                    break;
+                }
             }
 
-            std::cout << "\nLivrarea a fost integrata in magazin.\n";
             break;
         }
-        case 3:
+        case 2:
         {
             std::cout << "\n--- Inventarul principal ---\n";
             std::cout << magazin;
