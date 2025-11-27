@@ -4,6 +4,7 @@
 #include "Produs.h"
 #include <string>
 #include <cstddef>
+#include <iostream>
 
 class Inventory
 {
@@ -17,15 +18,17 @@ public:
     Inventory(const std::string& nume, std::size_t capacity);
     ~Inventory();
 
-    Inventory(const Inventory& other);     // copy constructor
-    Inventory(Inventory&& other) noexcept; // move constructor
+    Inventory(const Inventory& other);         // copy constructor
+    Inventory(Inventory&& other) noexcept;    // move constructor
 
-    Inventory& operator=(const Inventory& other);     // copy assignment
-    Inventory& operator=(Inventory&& other) noexcept; // move assignment
+    Inventory& operator=(const Inventory& other);      // copy assignment
+    Inventory& operator=(Inventory&& other) noexcept;  // move assignment
 
     void adaugaProdus(const Produs& p);
+    void stergeProdus(std::size_t index);             // <- nou
 
     friend std::ostream& operator<<(std::ostream& out, const Inventory& inv);
+
     std::size_t getSize() const { return size; }
     const Produs& getProdus(std::size_t index) const { return produse[index]; }
 };
