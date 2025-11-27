@@ -1,86 +1,107 @@
-#include "Produs.h"
 #include "Inventory.h"
-#include "Logger.h"
-#include <iostream>
-#include <limits>
 
-void citesteProdusSiAdauga(Inventory &inv)
+Inventory::Inventory(const std::string &nume, std::size_t cap)
+    : numeInventar(nume), produse(new Produs[cap]), size(0), capacity(cap)
 {
-    Produs p;
-    std::cin >> p;
-    inv.adaugaProdus(p);
 }
 
-int main()
+Inventory::~Inventory()
 {
-    Logger log;
-    log.log("Aplicatia a inceput.");
+    delete[] produse;
+}
 
-    Inventory magazin("Magazin Principal", 100);
-
-    bool ruleaza = true;
-    while (ruleaza)
+Inventory::Inventory(const Inventory &other)
+    : numeInventar(other.numeInventar),
+      produse(new Produs[other.capacity]),
+      size(other.size),
+      capacity(other.capacity)
+{
+    for (std::size_t i = 0; i < size; ++i)
     {
-        std::cout << "\n=== Meniu ===\n";
-        std::cout << "1. Adauga produs direct in magazin\n";
-        std::cout << "2. Proceseaza o livrare (depozit temporar + move)\n";
-        std::cout << "3. Afiseaza inventarul principal\n";
-        std::cout << "0. Iesire\n";
-        std::cout << "Optiune: ";
+        produse[i] = other.produse[i];
+    }
+}
 
-        int opt;
-        std::cin >> opt;
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+Inventory::Inventory(Inventory &&other) noexcept
+    : numeInventar(std::move(other.numeInventar)),
+      produse(other.produse),
+      size(other.size),
+      capacity(other.capacity)
+{
+    other.produse = nullptr;
+    other.size = 0;
+    other.capacity = 0;
+}
 
-        switch (opt)
-        {
-        case 1:
-        {
-            std::cout << "\n--- Adaugare produs in magazin ---\n";
-            citesteProdusSiAdauga(magazin);
-            break;
-        }
-        case 2:
-        {
-            std::cout << "\n--- Livrare noua (depozit temporar) ---\n";
-            int nr;
-            std::cout << "Cate produse are livrarea? ";
-            std::cin >> nr;
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-
-            Inventory depozitTemporar("Depozit Temporar", nr);
-
-            for (int i = 0; i < nr; ++i)
-            {
-                std::cout << "\nProdus #" << (i + 1) << " pentru depozitul temporar:\n";
-                citesteProdusSiAdauga(depozitTemporar);
-            }
-
-            Inventory livrare = std::move(depozitTemporar);
-
-            for (std::size_t i = 0; i < livrare.getSize(); ++i)
-            {
-                magazin.adaugaProdus(livrare.getProdus(i));
-            }
-
-            std::cout << "\nLivrarea a fost integrata in magazin.\n";
-            break;
-        }
-        case 3:
-        {
-            std::cout << "\n--- Inventarul principal ---\n";
-            std::cout << magazin;
-            break;
-        }
-        case 0:
-            ruleaza = false;
-            break;
-        default:
-            std::cout << "Optiune invalida.\n";
-            break;
-        }
+Inventory &Inventory::operator=(const Inventory &other)
+{
+    if (this == &other)
+    {
+        return *this;
     }
 
-    log.log("Aplicatia s-a incheiat.");
-    return 0;
+    delete[] produse;
+
+    numeInventar = other.numeInventar;
+    size = other.size;
+    capacity = other.capacity;
+
+    produse = new Produs[capacity];
+    for (std::size_t i = 0; i < size; ++i)
+    {
+        produse[i] = other.produse[i];
+    }
+
+    return *this;
+}
+
+Inventory &Inventory::operator=(Inventory &&other) noexcept
+{
+    if (this == &other)
+    {
+        return *this;
+    }
+
+    delete[] produse;
+
+    numeInventar = std::move(other.numeInventar);
+    produse = other.produse;
+    size = other.size;
+    capacity = other.capacity;
+
+    other.produse = nullptr;
+    other.size = 0;
+    other.capacity = 0;
+
+    return *this;
+}
+
+void Inventory::adaugaProdus(const Produs &p)
+{
+    if (size < capacity)
+    {
+        produse[size++] = p;
+    }
+}
+
+void Inventory::stergeProdus(std::size_t index)
+{
+    if (index >= size)
+        return;
+
+    for (std::size_t i = index; i + 1 < size; ++i)
+    {
+        produse[i] = produse[i + 1];
+    }
+    --size;
+}
+
+std::ostream &operator<<(std::ostream &out, const Inventory &inv)
+{
+    out << "Inventory \"" << inv.numeInventar << "\":\n";
+    for (std::size_t i = 0; i < inv.getSize(); ++i)
+    {
+        out << "  - " << inv.produse[i] << "\n";
+    }
+    return out;
 }
