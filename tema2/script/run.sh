@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -e
+
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+BUILD_DIR="$PROJECT_ROOT/build"
+
+mkdir -p "$BUILD_DIR"
+cd "$BUILD_DIR"
+
+echo "=== CMake configure ==="
+cmake ..
+
+echo "=== CMake build ==="
+cmake --build .
+
+echo "=== Rulare ==="
+./tema2
